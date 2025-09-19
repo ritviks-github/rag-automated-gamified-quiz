@@ -1,0 +1,14 @@
+#main-navbar {
+  transition: box-shadow 0.4s ease, transform 0.4s ease;
+}
+
+#main-navbar.scrolled {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform: scale(0.98); /* optional subtle shrink on scroll */
+}
+
+
+
+body.auth-page {
+  padding-top: 0 !important;
+}
