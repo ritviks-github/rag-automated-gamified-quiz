@@ -101,6 +101,11 @@ export default function Quiz_Studs() {
     }
     const checkAttempted = async () => {
     try {
+      const res = await fetch(`http://localhost:8080/api/get-quiz/${roomId}`);
+      if (!res.ok) {
+        throw new Error('Quiz not found');
+      }
+      const data = await res.json();
       const response = await axios.get("http://localhost:8080/api/check-attempted-quiz", {
         params: {
           studentId: localStorage.getItem("userId"),
@@ -110,7 +115,7 @@ export default function Quiz_Studs() {
 
       if (response.data.attempted) {
         alert("You have already submitted this quiz.");
-        navigate("/result");
+        navigate(`/review-answers/${roomId}`,{ state: { quiz:data } });
       }
     } catch (err) {
       console.error(err);
@@ -178,6 +183,8 @@ export default function Quiz_Studs() {
   });
   const [timerFrozen, setTimerFrozen] = useState(false);
   const [doubleScoreActive, setDoubleScoreActive] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Timer
   useEffect(() => {
     if (timerFrozen) return;
@@ -260,19 +267,27 @@ export default function Quiz_Studs() {
       setSelectedOptions([]);
     } else {
       // Submit
+      setIsSubmitting(true);
       try {
         await axios.post("http://localhost:8080/api/submit-quiz", {
           studentId,
           testId: roomId,
           responses: [...allResponses, currentResponse],
         });
+        axios.get("http://localhost:8080/api/collect-answers", {
+          params: {
+            testId: roomId,
+          },
+        });
         alert("Quiz submitted successfully!");
       } catch (err) {
         console.error(err);
         alert(err.response?.data?.message || "Failed to submit quiz.");
+        setIsSubmitting(false);
       } finally {
         localStorage.removeItem(storageKey);
-        navigate("/result", { state: { quiz } });
+        navigate(`/review-answers/${roomId}`, { state: { quiz } });
+        setIsSubmitting(false);
       }
     }
   };
@@ -355,7 +370,7 @@ export default function Quiz_Studs() {
           <span className="fw-bold">Time Left: {timeLeft}s</span>
           <button
             onClick={handleNextQuestion}
-            disabled={completedQuestions.includes(currentQuestionIndex)}
+            disabled={completedQuestions.includes(currentQuestionIndex) || isSubmitting}
             className="btn btn-light fw-semibold rounded-pill shadow-sm"
           >
             {currentQuestionIndex < quiz.questions.length - 1 ? "Next" : "Finish"}
@@ -400,6 +415,27 @@ export default function Quiz_Studs() {
           2× Score ({powerUps.doubleScore})
         </button>
       </div>
+
+        {isSubmitting && (
+  <div
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      backgroundColor: "rgba(0,0,0,0.7)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      color: "white",
+      fontSize: "24px",
+      zIndex: 2000,
+    }}
+  >
+    Loading...
+  </div>
+)}
 
     </div>
   );

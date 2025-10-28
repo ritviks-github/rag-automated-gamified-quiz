@@ -47,6 +47,7 @@ export default function Students_Dash() {
       if (resultRes.data.attempted) {
         alert("You have already submitted this quiz.");
         setLoading(false);
+        navigate(`/review-answers/${roomId}`, { state: { quiz:data } });
         return;
       }
 
@@ -61,9 +62,7 @@ export default function Students_Dash() {
 
         if (timeLeft === 0) {
           clearInterval(timer);
-
-          // 3. Navigate to quiz page, pass quiz data
-          navigate(`/quiz/${roomId}`, { state: { quiz: data } });
+          navigate(`/waiting-room/${roomId}`, { state: { quiz: data } });
         }
       }, 1000);
     } catch (err) {

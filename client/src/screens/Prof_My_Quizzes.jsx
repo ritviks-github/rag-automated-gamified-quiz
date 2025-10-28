@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function Prof_My_Quizzes() {
   const [quizzes, setQuizzes] = useState([]);
@@ -73,11 +74,13 @@ export default function Prof_My_Quizzes() {
                         {openQuiz === quiz._id ? "Hide Questions" : "View Questions"}
                     </button>
 
-                    <button
+                    <Link
+                        to={`/waiting-room/${quiz.roomId}`}
+                        state={{ quiz }} // Pass quiz details to WaitingRoom
                         className="btn btn-outline-info fw-semibold rounded-pill shadow-sm"
                     >
-                        View Report of Participants
-                    </button>
+                        See Waiting Room Status
+                    </Link>
                 </div>
               </div>
 

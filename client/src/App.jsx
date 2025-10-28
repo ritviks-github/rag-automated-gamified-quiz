@@ -10,6 +10,9 @@ import Prof_Quest from './screens/Prof_Quest'
 import Prof_Upload from './screens/Prof_Upload'
 import Prof_My_Quizzes from './screens/Prof_My_Quizzes'
 import Quiz_Studs from './screens/Quiz_Studs'
+import Result from './screens/Result'
+import WaitingRoom from './screens/WaitingRoom'
+import ReviewAnswers from './screens/ReviewAnswers'
 
 function App() {
  
@@ -27,6 +30,9 @@ function App() {
         <Route path='/dashboard/prof/upload' element={<Prof_Upload />} />
         <Route path='/dashboard/prof/my-quizzes' element={<Prof_My_Quizzes />} />
         <Route path="/quiz/:roomId" element={<Quiz_Studs />} />
+        <Route path="/waiting-room/:roomId" element={<WaitingRoom />} />
+        <Route path='/result/:testId' element={<Result />} />
+        <Route path='/review-answers/:roomId' element={<ReviewAnswers />} />
       </Routes>
     </>
   )
