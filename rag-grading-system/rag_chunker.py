@@ -6,6 +6,7 @@ from PIL import Image
 import pytesseract
 import io
 from sentence_transformers import SentenceTransformer
+import re
 
 # ---- CONFIG ----
 CHUNK_SIZE = 500   # characters
@@ -50,6 +51,13 @@ def chunk_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
         start += chunk_size - overlap
     return chunks
 
+
+def normalize_text(text):
+    text = text.lower().strip()
+    text = re.sub(r'\s+', ' ', text)             # collapse multiple spaces/newlines
+    text = re.sub(r'[^\w\s]', '', text)          # remove punctuation
+    return text
+
 def create_chunks(pdf_path, professor_id, quiz_id, document_id):
     """Process PDF → Chunks with embeddings."""
     text = extract_text_from_pdf(pdf_path)
@@ -59,7 +67,8 @@ def create_chunks(pdf_path, professor_id, quiz_id, document_id):
 
     print(f"[INFO] Creating {len(raw_chunks)} chunks...")
     for idx, chunk in enumerate(raw_chunks):
-        emb = model.encode(chunk).tolist()
+        normalized_chunk = normalize_text(chunk)
+        emb = model.encode(normalized_chunk).tolist()
 
         chunk_record = {
             "chunk_id": str(uuid.uuid4()),
