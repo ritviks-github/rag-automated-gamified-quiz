@@ -30,6 +30,7 @@ const quizSchema = new mongoose.Schema(
       required: true,
     },
     questions: [questionSchema],
+    quizStarted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

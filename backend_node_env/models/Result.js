@@ -1,6 +1,10 @@
 // models/Result.js
 const mongoose = require("mongoose");
 
+const roundToTwo = (num) => {
+  if (typeof num !== "number") return num;
+  return Math.round(num * 100) / 100;
+};
 
 const evaluationSchema = new mongoose.Schema({
   questionId: {
@@ -10,6 +14,7 @@ const evaluationSchema = new mongoose.Schema({
   score: {
     type: Number, // 0–1 or percentage
     required: true,
+    set: roundToTwo,
   },
   feedback: {
     type: String, // Explanation / reasoning from LLM
@@ -39,11 +44,16 @@ const resultSchema = new mongoose.Schema({
   overallScore: {
     type: Number, // optional: average or total score
     required: false,
+    set: roundToTwo,
   },
   submittedAt: {
     type: Date,
     default: Date.now,
   },
+  normalized: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 // Ensure a student can't submit the same test twice
