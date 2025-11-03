@@ -26,7 +26,8 @@ app.use('/api',require('./routes/waitingRoom'));
 app.use('/api',require('./routes/collectAllUserAnswers'));
 app.use('/api',require('./routes/getStudentResponses'));
 app.use('/api',require('./routes/checkNormalization'));
-
+app.use("/api/user", require('./routes/userProfileRoutes'));
+app.use('/api', require('./routes/getUserImage'));
 
 
 

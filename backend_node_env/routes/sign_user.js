@@ -3,53 +3,82 @@ const router = express.Router();
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
 
+const upload = multer({ storage: multer.memoryStorage() });
 const JWT_SECRET = "your_secret_key";
 
 // POST /api/sign
-router.post("/sign", async (req, res) => {
+router.post("/sign", upload.single("profilePic"), async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      institution,
+      rollNumber,
+      course,
+      semester,
+      phone,
+      acceptTerms,
+    } = req.body;
 
-    // 1. Check if user already exists
+    // validate mandatory fields
+    if (!name || !email || !password)
+      return res.status(400).json({ error: "Name, email, and password are required." });
+
+    // check existing user
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: "Email already registered" });
-    }
+    if (existingUser)
+      return res.status(400).json({ error: "Email already exists." });
 
-    // 2. Hash password
+    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 3. Create user
+    // prepare image data
+    let profilePic = {};
+    if (req.file) {
+      profilePic = {
+        data: req.file.buffer,
+        contentType: req.file.mimetype,
+      };
+    }
+
+    // create new user
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
       role,
+      institution,
+      rollNumber,
+      course,
+      semester,
+      phone,
+      acceptTerms,
+      profilePic,
     });
 
     await newUser.save();
 
-    // 4. Generate JWT
+    // generate token
     const token = jwt.sign(
-      { userId: newUser._id, role: newUser.role },
-      JWT_SECRET,
-      { expiresIn: "1h" }
+      { id: newUser._id, role: newUser.role },
+      JWT_SECRET
     );
 
     res.status(201).json({
-      message: "User registered successfully",
       token,
       user: {
         id: newUser._id,
-        name: newUser.name,
         email: newUser.email,
         role: newUser.role,
       },
     });
   } catch (err) {
-    console.error("Signup error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Signup Error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
