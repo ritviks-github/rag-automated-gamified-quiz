@@ -18,6 +18,8 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models as qmodels
 from rag_chunker import model
 import re
+import time
+from face_Recognition import recognize_face
 
 app = FastAPI()
 
@@ -80,6 +82,28 @@ class ResultModel(BaseModel):
 class EvalRequest(BaseModel):
     quiz: QuizModel
     result: ResultModel
+
+@app.post("/face_recognition")
+async def face_recognition(
+    source_image: UploadFile = File(...),
+    image_to_be_verified: UploadFile = File(...)
+):
+    """
+    Upload two images for face verification using facenet-pytorch.
+    """
+
+    # Save uploaded images temporarily
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp1:
+        tmp1.write(await source_image.read())
+        source_path = tmp1.name
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp2:
+        tmp2.write(await image_to_be_verified.read())
+        verify_path = tmp2.name
+
+    result = recognize_face(source_path, verify_path)
+    return result
+
 
 
 def extract_score_from_llm(raw_output: str) -> dict:
@@ -295,7 +319,7 @@ Instructions:
                     generation_config={"temperature": 0, "top_p": 1}
                 )
                 resp = model_llm.generate_content(prompt)
-
+                time.sleep(5)
                 raw_output = resp.text.strip()
                 # Extract JSON array from model output safely
                 match = re.search(r"\[.*\]", raw_output, re.DOTALL)
