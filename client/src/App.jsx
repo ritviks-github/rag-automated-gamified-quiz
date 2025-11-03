@@ -13,6 +13,8 @@ import Quiz_Studs from './screens/Quiz_Studs'
 import Result from './screens/Result'
 import WaitingRoom from './screens/WaitingRoom'
 import ReviewAnswers from './screens/ReviewAnswers'
+import TermsAndPrivacy from './screens/TermsAndPrivacy'
+import FaceAuth from './screens/FaceAuth'
 
 function App() {
  
@@ -33,6 +35,8 @@ function App() {
         <Route path="/waiting-room/:roomId" element={<WaitingRoom />} />
         <Route path='/result/:testId' element={<Result />} />
         <Route path='/review-answers/:roomId' element={<ReviewAnswers />} />
+        <Route path='/terms-and-privacy' element={<TermsAndPrivacy />} />
+        <Route path='/face-auth' element={<FaceAuth />} />
       </Routes>
     </>
   )

@@ -135,6 +135,100 @@ export default function Quiz_Studs() {
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [completedQuestions, setCompletedQuestions] = useState([]);
   const [allResponses, setAllResponses] = useState([]);
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  useEffect(() => {
+    let blurTimeout;
+
+    // Core handler for any detected violation
+    const handleViolation = () => {
+      setTabSwitchCount(prev => {
+        const newCount = prev + 1;
+
+        if (newCount < 3) {
+          alert(`⚠️ Warning : Please remain on the quiz screen. Tab switching, minimizing, or losing focus may lead to auto-submission.`);
+        } else if (newCount === 3) {
+          alert("🚨 Final Warning: One more focus loss will automatically submit your quiz!");
+        } else if (newCount > 3) {
+          alert("❌ Your quiz is being auto-submitted due to repeated focus loss.");
+          handleAutoSubmit();
+        }
+
+        return newCount;
+      });
+    };
+
+    // Detect when user switches tabs or minimizes window
+    const handleVisibilityChange = () => {
+      if (document.hidden) handleViolation();
+    };
+
+    // Detect when window loses focus (e.g., another app or resizing)
+    const handleBlur = () => {
+      blurTimeout = setTimeout(() => {
+        // double-check after small delay to avoid false positives
+        if (!document.hasFocus()) handleViolation();
+      }, 800);
+    };
+
+    // Clear any pending blur timers when user returns
+    const handleFocus = () => {
+      clearTimeout(blurTimeout);
+    };
+
+    // Attach listeners
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
+    setTimeout(() => {
+      if (document.hidden || !document.hasFocus()) {
+        alert("⚠️ Please keep the quiz tab fully visible and focused before starting.");
+        handleViolation();
+      }
+    }, 1000);
+
+
+    // Clean up listeners when component unmounts
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
+      clearTimeout(blurTimeout);
+    };
+  }, []);
+
+
+  const handleAutoSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const currentQuestionData = quiz.questions[currentQuestionIndex];
+      const currentResponse = {
+        questionId: currentQuestionData._id,
+        answer:
+          currentQuestionData.type === "mcq"
+            ? selectedOptions
+            : selectedOptions[0] || "",
+        doubleScore: doubleScoreActive ? true : false,
+      };
+
+      await axios.post("http://localhost:8080/api/submit-quiz", {
+        studentId,
+        testId: roomId,
+        responses: [...allResponses, currentResponse],
+      });
+
+      alert("Your quiz has been auto-submitted due to tab switching.");
+      localStorage.removeItem(storageKey);
+      navigate(`/review-answers/${roomId}`, { state: { quiz } });
+    } catch (err) {
+      console.error(err);
+      alert("Error during auto-submit.");
+    } finally {
+      setIsSubmitting(false);
+      localStorage.removeItem("faceAuthVerified");
+      // when quiz ends or student submits
+    }
+  };
+
 
   // Restore progress on mount
   useEffect(() => {
@@ -288,6 +382,7 @@ export default function Quiz_Studs() {
         localStorage.removeItem(storageKey);
         navigate(`/review-answers/${roomId}`, { state: { quiz } });
         setIsSubmitting(false);
+        localStorage.removeItem("faceAuthVerified");
       }
     }
   };

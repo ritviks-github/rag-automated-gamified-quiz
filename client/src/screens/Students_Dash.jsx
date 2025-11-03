@@ -62,7 +62,7 @@ export default function Students_Dash() {
 
         if (timeLeft === 0) {
           clearInterval(timer);
-          navigate(`/waiting-room/${roomId}`, { state: { quiz: data } });
+          navigate(`/face-auth`, { state: { quiz: data, roomId } });
         }
       }, 1000);
     } catch (err) {

@@ -23,6 +23,12 @@ export default function WaitingRoom() {
       navigate("/login");
       return;
     }
+    const faceAuthVerified = localStorage.getItem("faceAuthVerified");
+    if (role === "student" && faceAuthVerified !== "true") {
+      alert("Please complete face authentication before joining the quiz.");
+      navigate(`/face-auth/${roomId}`); // Redirect to your face auth route
+      return;
+    }
 
     const joinQuiz = async () => {
       if (role === "student") {
